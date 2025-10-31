@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Happy Birthday Mhr Donkor 🎉</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: radial-gradient(circle at bottom, #021027 0%, #000 100%);
+    height: 100%;
+    width: 100%;
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+  }
+
+  h1 {
+    position: absolute;
+    top: 45%;
+    width: 100%;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 20px #ff00c8, 0 0 40px #00c8ff, 0 0 60px #fff;
+    animation: glow 3s ease-in-out infinite alternate;
+    z-index: 2;
+  }
+
+  @keyframes glow {
+    from {
+      text-shadow: 0 0 10px #ff00c8, 0 0 20px #00c8ff, 0 0 30px #fff;
+    }
+    to {
+      text-shadow: 0 0 20px #00c8ff, 0 0 40px #ff00c8, 0 0 60px #fff;
+    }
+  }
+
+  canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+
+  @media (min-width: 768px) {
+    h1 {
+      font-size: 4rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <h1>🎉 Happy Birthday&nbsp;Mhr Donkor 🎂</h1>
+  <canvas id="fireworks"></canvas>
+
+  <audio id="music" src="happy-birthday.mp3" autoplay loop></audio>
+
+  <audio id="boom1" src="firework1.mp3"></audio>
+  <audio id="boom2" src="firework2.mp3"></audio>
+
+  <script>
+    // --- Fireworks setup ---
+    const canvas = document.getElementById('fireworks');
+    const ctx = canvas.getContext('2d');
+    let cw, ch;
+    function resize() {
+      cw = canvas.width = window.innerWidth;
+      ch = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const particles = [];
+    function random(min, max) { return Math.random() * (max - min) + min; }
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.radius = random(1, 3);
+        this.alpha = 1;
+        this.angle = random(0, 2 * Math.PI);
+        this.speed = random(2, 8);
+        this.gravity = 0.05;
+      }
+      update() {
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed + this.gravity;
+        this.alpha -= 0.015;
+      }
+      draw() {
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function explode(x, y) {
+      const colors = ['#ff0043', '#ffb300', '#00c8ff', '#ffffff', '#39ff14'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      for (let i = 0; i < 50; i++) {
+        particles.push(new Particle(x, y, color));
+      }
+      // Play random firework sound
+      const sound = Math.random() > 0.5 ? document.getElementById('boom1') : document.getElementById('boom2');
+      sound.currentTime = 0;
+      sound.play().catch(()=>{});
+    }
+
+    function loop() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(0, 0, cw, ch);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.update();
+        p.draw();
+        if (p.alpha <= 0) particles.splice(i, 1);
+      }
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    setInterval(() => {
+      explode(random(0.1 * cw, 0.9 * cw), random(0.1 * ch, 0.6 * ch));
+    }, 1200);
+
+    // start music when allowed (for mobile)
+    document.addEventListener('click', () => {
+      const music = document.getElementById('music');
+      if (music.paused) music.play().catch(()=>{});
+    });
+  </script>
+</body>
+</html>

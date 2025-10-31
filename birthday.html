@@ -1,141 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Happy Birthday Mhr Donkor 🎉</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    background: radial-gradient(circle at bottom, #021027 0%, #000 100%);
-    height: 100%;
-    width: 100%;
-    color: #fff;
-    font-family: 'Poppins', sans-serif;
-    text-align: center;
-  }
-
-  h1 {
-    position: absolute;
-    top: 45%;
-    width: 100%;
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #fff;
-    text-shadow: 0 0 20px #ff00c8, 0 0 40px #00c8ff, 0 0 60px #fff;
-    animation: glow 3s ease-in-out infinite alternate;
-    z-index: 2;
-  }
-
-  @keyframes glow {
-    from {
-      text-shadow: 0 0 10px #ff00c8, 0 0 20px #00c8ff, 0 0 30px #fff;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy Birthday Mhr Donkor 🎉</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    to {
-      text-shadow: 0 0 20px #00c8ff, 0 0 40px #ff00c8, 0 0 60px #fff;
+    body {
+      height: 100vh;
+      background: radial-gradient(circle at center, #000, #020b1a 70%);
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: #fff;
+      text-align: center;
+      font-family: 'Poppins', sans-serif;
     }
-  }
-
-  canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1;
-  }
-
-  @media (min-width: 768px) {
     h1 {
-      font-size: 4rem;
+      font-size: clamp(2rem, 5vw, 4rem);
+      color: #ffd700;
+      text-shadow: 0 0 20px #ffae00, 0 0 40px #ff6a00;
+      animation: glow 2s ease-in-out infinite alternate;
     }
-  }
-</style>
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #ff6a00; }
+      to { text-shadow: 0 0 40px #ffae00; }
+    }
+
+    #fireworksCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    button {
+      margin-top: 20px;
+      background: #ffae00;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: #ffd700;
+      transform: scale(1.1);
+    }
+  </style>
 </head>
 <body>
-  <h1>🎉 Happy Birthday&nbsp;Mhr Donkor 🎂</h1>
-  <canvas id="fireworks"></canvas>
+  <canvas id="fireworksCanvas"></canvas>
+  <h1>🎉 Happy Birthday <br> Mhr Donkor 🎉</h1>
+  <button onclick="playCelebration()">Play Celebration</button>
 
-  <audio id="music" src="happy-birthday.mp3" autoplay loop></audio>
-
-  <audio id="boom1" src="firework1.mp3"></audio>
-  <audio id="boom2" src="firework2.mp3"></audio>
+  <audio id="music" src="happy_birthday.mp3"></audio>
+  <audio id="fireworksSound" src="fireworks.mp3"></audio>
 
   <script>
-    // --- Fireworks setup ---
-    const canvas = document.getElementById('fireworks');
-    const ctx = canvas.getContext('2d');
-    let cw, ch;
-    function resize() {
-      cw = canvas.width = window.innerWidth;
-      ch = canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resize);
-    resize();
+    // Fireworks animation
+    const canvas = document.getElementById("fireworksCanvas");
+    const ctx = canvas.getContext("2d");
+    let cw = window.innerWidth;
+    let ch = window.innerHeight;
+    canvas.width = cw;
+    canvas.height = ch;
 
-    const particles = [];
-    function random(min, max) { return Math.random() * (max - min) + min; }
+    window.addEventListener("resize", () => {
+      cw = window.innerWidth;
+      ch = window.innerHeight;
+      canvas.width = cw;
+      canvas.height = ch;
+    });
+
+    let particles = [];
+
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    class Firework {
+      constructor() {
+        this.x = cw / 2;
+        this.y = ch;
+        this.targetX = random(0, cw);
+        this.targetY = random(ch / 4, ch / 2);
+        this.size = 2;
+        this.speed = 5;
+        this.angle = Math.atan2(this.targetY - this.y, this.targetX - this.x);
+        this.exploded = false;
+        this.color = `hsl(${random(0, 360)}, 100%, 60%)`;
+      }
+
+      update() {
+        if (!this.exploded) {
+          this.x += Math.cos(this.angle) * this.speed;
+          this.y += Math.sin(this.angle) * this.speed;
+          if (Math.hypot(this.targetX - this.x, this.targetY - this.y) < 10) {
+            this.exploded = true;
+            for (let i = 0; i < 50; i++) {
+              particles.push(new Particle(this.x, this.y, this.color));
+            }
+          }
+        }
+      }
+
+      draw() {
+        if (!this.exploded) {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = this.color;
+          ctx.fill();
+        }
+      }
+    }
 
     class Particle {
       constructor(x, y, color) {
         this.x = x;
         this.y = y;
-        this.color = color;
-        this.radius = random(1, 3);
-        this.alpha = 1;
-        this.angle = random(0, 2 * Math.PI);
-        this.speed = random(2, 8);
+        this.size = 2;
+        this.speed = random(2, 6);
+        this.angle = random(0, Math.PI * 2);
         this.gravity = 0.05;
+        this.opacity = 1;
+        this.decay = random(0.015, 0.03);
+        this.color = color;
       }
+
       update() {
         this.x += Math.cos(this.angle) * this.speed;
         this.y += Math.sin(this.angle) * this.speed + this.gravity;
-        this.alpha -= 0.015;
+        this.opacity -= this.decay;
       }
+
       draw() {
-        ctx.globalAlpha = this.alpha;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.opacity;
         ctx.fill();
         ctx.globalAlpha = 1;
       }
     }
 
-    function explode(x, y) {
-      const colors = ['#ff0043', '#ffb300', '#00c8ff', '#ffffff', '#39ff14'];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      for (let i = 0; i < 50; i++) {
-        particles.push(new Particle(x, y, color));
-      }
-      // Play random firework sound
-      const sound = Math.random() > 0.5 ? document.getElementById('boom1') : document.getElementById('boom2');
-      sound.currentTime = 0;
-      sound.play().catch(()=>{});
-    }
-
-    function loop() {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    function animate() {
+      requestAnimationFrame(animate);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
       ctx.fillRect(0, 0, cw, ch);
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
+
+      if (Math.random() < 0.05) {
+        particles.push(new Firework());
+      }
+
+      particles.forEach((p, i) => {
         p.update();
         p.draw();
-        if (p.alpha <= 0) particles.splice(i, 1);
-      }
-      requestAnimationFrame(loop);
+        if (p.opacity <= 0) {
+          particles.splice(i, 1);
+        }
+      });
     }
-    loop();
 
-    setInterval(() => {
-      explode(random(0.1 * cw, 0.9 * cw), random(0.1 * ch, 0.6 * ch));
-    }, 1200);
+    animate();
 
-    // start music when allowed (for mobile)
-    document.addEventListener('click', () => {
-      const music = document.getElementById('music');
-      if (music.paused) music.play().catch(()=>{});
-    });
+    function playCelebration() {
+      const music = document.getElementById("music");
+      const fireworksSound = document.getElementById("fireworksSound");
+      music.play();
+      fireworksSound.play();
+    }
   </script>
 </body>
 </html>
